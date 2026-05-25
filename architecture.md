@@ -5,23 +5,26 @@ Scenario: **B — Weekly churn predictions for a B2B SaaS company**
 Serving pattern: **Batch inference**
 
 ```mermaid
-flowchart LR
+flowchart TB
     subgraph Sources["Data Sources"]
         CRM["CRM<br/>accounts, stages, owner"]
         Product["Product Analytics<br/>usage events, logins, seats"]
         Billing["Billing System<br/>invoices, plan, payments"]
     end
 
-    subgraph Offline["Offline Data + Training"]
+    subgraph DataLayer["Offline Data Layer"]
         Ingestion["Ingestion Jobs"]
         Warehouse["Data Warehouse"]
         FeaturePipeline["Feature Pipeline<br/>weekly account features"]
         FeatureTable["Feature Table<br/>account_id, week, features"]
+    end
+
+    subgraph TrainingLayer["Training + Registry"]
         Training["Training Pipeline"]
         Registry["Model Registry<br/>approved churn model"]
     end
 
-    subgraph Serving["Batch Serving Boundary"]
+    subgraph ServingLayer["Batch Serving Boundary"]
         Scoring["Weekly Batch Scoring Job<br/>runs every Monday"]
         Scores["Churn Scores Table<br/>account_id, score, rank, reason codes"]
     end
@@ -45,7 +48,7 @@ flowchart LR
     FeaturePipeline -->|"weekly feature rows"| FeatureTable
 
     FeatureTable -->|"training dataset"| Training
-    Outcomes -->|"labels for supervised learning"| Training
+    Outcomes -->|"labels"| Training
     Training -->|"model artifact + metrics"| Registry
 
     Registry -->|"approved model version"| Scoring
